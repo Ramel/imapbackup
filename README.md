@@ -157,3 +157,7 @@ imapbackup --host <imap.server.address> --ssl --username username02@example.com 
 ### v0.1.2
 
 - Try to use Date from email body while doing upload.
+
+### v0.1.3
+
+- Try to take in count the spaces in folder names, and create folders, if not exists, on IMAP on restore.

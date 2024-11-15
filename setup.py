@@ -18,7 +18,7 @@ with open(os.path.join(here, 'requirements.txt'), "r", encoding="utf-8") as fobj
 
 setup(
     name="imapbackup",
-    version="0.1.2",
+    version="0.1.3",
     description="Download all emails from an IMAP server and save these emails to .eml files, and allow you to restore these emails to a new imap server.",
     long_description=long_description,
     long_description_content_type='text/markdown',
