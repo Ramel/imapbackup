@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, generators, nested_scopes, pri
 
 import os
 import logging
+from glob import glob
 
 import click
 from zenutils import logutils
@@ -192,8 +193,29 @@ def do_restore(ctx, backup_root):
     logger.debug(f"imapbackup.do_restore connect to IMAP server success: server={server}...")
     mailbox = Mailbox(server)
     table = []
+    # Check imap folders vs backup folders
+    imap_folders = mailbox.get_all_folders()
+    backup_folders = glob("**/", recursive=True, root_dir=os.path.abspath(backup_root))
+    backup_folders = [folder.replace('\\', '/').rstrip('/') if '\\' in folder else folder for folder in backup_folders]
+    missing_folders = set(backup_folders) - set(folder[0] for folder in imap_folders)
+    logger.debug(f"missing_folders on IMAP: {missing_folders}")
+    target = ""
+    for missing in missing_folders:
+        space = False
+        for level in missing.split('/'):
+            # Case of spaces in folder name
+            if " " in level:
+                space = True
+            target += f"{level}/"
+        target = target.rstrip('/')
+        if space:
+            target = f"\"{target}\""
+        logger.debug(f"Create missing folder on IMAP: {target}")
+        server.create(target)
+        server.subscribe(target)
     for folder in mailbox.get_all_folders():
         folder_name = folder[0]
+        logger.debug(f"folder_name = {folder_name}")                                            
         info = mailbox.restore(folder_name, backup_root)
         row = [folder_name]
         row += info

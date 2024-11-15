@@ -26,7 +26,7 @@ class Mailbox(object):
     imap_append_expected = "OK"
     save_filename_template = "{mail_uid}-{mail_datetime}-{mail_subject}-{mail_body_hashcode}.eml"
     save_filename_pattern = "(?P<mail_uid>\d+)-(?P<mail_datetime>\d+)-(?P<mail_subject>.*)-(?P<mail_subject_hashcode>[0-9a-f]*).eml"
-    no_subject_title = "无标题"
+    no_subject_title = "No Title" #"无标题"
 
     def __init__(self, imap_instance):
         self.imap_instance = imap_instance
@@ -147,7 +147,8 @@ class Mailbox(object):
         """
         msg = f"Mailbox.select_folder start: folder={folder}..."
         logger.debug(msg)
-        status, data = self.imap_instance.select(imap_utf7.encode(folder))
+        # Bug with spaces                         
+        status, data = self.imap_instance.select(imap_utf7.encode(f"\"{folder}\""))
         if status != self.imap_select_expected:
             msg = f"Mailbox.select_folder failed: imap_instance={self.imap_instance}, folder={folder}, status={status}, data={data}..."
             logger.error(msg)
@@ -303,7 +304,8 @@ class Mailbox(object):
         """
         msg = f"Mailbox.upload_eml start: imap_instance={self.imap_instance}, folder={folder}, eml_filename={eml_filename}..."
         logger.debug(msg)
-        folder_encoded = imap_utf7.encode(folder)
+        # Bug with spaces             
+        folder_encoded = imap_utf7.encode(f"\"{folder}\"")
         try:
             eml_data = fsutils.readfile(eml_filename, binary=True)
         except Exception as error:
@@ -338,6 +340,8 @@ class Mailbox(object):
             new_counter: this process should uploaded counter.
             total: scaned emls.
         """
+        # Bugs with spaces
+        folder = folder.replace("'", '')                                
         logger.debug(f"Mailbox.restore start: root={root}, folder={folder}, uploaded_mail_uids_filename={uploaded_mail_uids_filename}...")
         folder_path = os.path.abspath(os.path.join(root, folder))
         if not os.path.exists(folder_path): # folder not exists
